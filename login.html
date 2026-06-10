@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoffeeStock - Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="max-w-md w-full bg-white rounded-lg shadow-lg p-8 border-t-8 border-amber-700">
+        
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 flex items-center justify-center gap-2">
+                ☕ CoffeeStock
+            </h1>
+            <p class="text-sm text-gray-500 mt-2">Controle de Estoque e Pedidos</p>
+        </div>
+
+        <div id="erroAlerta" class="hidden bg-red-50 border border-red-200 text-red-700 text-sm p-3 rounded-md mb-4 text-center font-medium">
+            </div>
+
+        <form id="formLogin" class="space-y-5">
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1">Usuário</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">👤</span>
+                    <input type="text" id="username" required placeholder="Digite seu usuário" 
+                        class="w-full pl-9 p-2.5 border rounded-md outline-none focus:ring-2 focus:ring-amber-500 transition text-gray-700">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1">Senha</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">🔒</span>
+                    <input type="password" id="senha" required placeholder="Digite sua senha" 
+                        class="w-full pl-9 p-2.5 border rounded-md outline-none focus:ring-2 focus:ring-amber-500 transition text-gray-700">
+                </div>
+            </div>
+
+            <button type="submit" id="btnEntrar"
+                class="w-full bg-amber-700 hover:bg-amber-800 text-white font-bold py-2.5 px-4 rounded-md transition duration-200 shadow flex justify-center items-center gap-2">
+                <span>Entrar no Sistema</span>
+            </button>
+        </form>
+
+        <div class="text-center mt-6 pt-4 border-t border-gray-100">
+            <p class="text-xs text-gray-400">
+                Acesso restrito. Novos cadastros devem ser solicitados ao Administrador.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Mude para a URL pública quando subir o Python para a Nuvem
+        const API_URL = "http://127.0.0.1:8000"; 
+
+        const formLogin = document.getElementById('formLogin');
+        const erroAlerta = document.getElementById('erroAlerta');
+        const btnEntrar = document.getElementById('btnEntrar');
+
+        // Limpa tokens antigos ao abrir a página de login por segurança
+        localStorage.clear();
+
+        formLogin.addEventListener('submit', async function(e) {
+            e.preventDefault(); // Impede o recarregamento padrão da página
+
+            // Esconde mensagens de erro anteriores e muda o botão para carregando
+            erroAlerta.classList.add('hidden');
+            btnEntrar.disabled = true;
+            btnEntrar.innerHTML = `<span>Acessando...</span>`;
+
+            const payload = {
+                username: document.getElementById('username').value.trim(),
+                senha: document.getElementById('senha').value
+            };
+
+            try {
+                // Envia a requisição POST de autenticação para o FastAPI
+                const res = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const dados = await res.json();
+
+                if (!res.ok) {
+                    // Se o servidor recusar as credenciais (Erro 401 ou 400)
+                    erroAlerta.textContent = dados.detail || "Erro ao realizar o login.";
+                    erroAlerta.classList.remove('hidden');
+                    
+                    // Restaura o botão
+                    btnEntrar.disabled = false;
+                    btnEntrar.innerHTML = `<span>Entrar no Sistema</span>`;
+                    return;
+                }
+
+                // === LOGIN COM SUCESSO ===
+                // Armazena as informações e credenciais JWT no navegador do usuário
+                localStorage.setItem("token_cafe", dados.token);
+                localStorage.setItem("cargo_cafe", dados.cargo);
+                localStorage.setItem("username_cafe", dados.username);
+
+                // Redireciona imediatamente para a tela de dashboard/pedidos
+                window.location.href = "pedidos.html";
+
+            } catch (err) {
+                // Caso o servidor na nuvem ou local esteja desligado
+                erroAlerta.textContent = "Não foi possível conectar ao servidor. Verifique sua conexão.";
+                erroAlerta.classList.remove('hidden');
+                
+                btnEntrar.disabled = false;
+                btnEntrar.innerHTML = `<span>Entrar no Sistema</span>`;
+            }
+        });
+    </script>
+</body>
+</html>

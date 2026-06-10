@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Estoque de Café</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-4 sm:p-8 pb-24">
+
+    <div class="max-w-7xl mx-auto">
+        <header class="mb-8 flex flex-col sm:flex-row justify-between items-center bg-white p-4 rounded-lg shadow-sm gap-4">
+            <div class="flex items-center gap-4 justify-between w-full sm:w-auto">
+                <h1 class="text-2xl font-bold text-gray-800">☕ CoffeeStock</h1>
+                <span id="usuarioLogadoBadge" class="text-xs bg-amber-100 text-amber-800 font-semibold px-2.5 py-1 rounded-full"></span>
+            </div>
+            <div class="flex flex-wrap gap-2 justify-center w-full sm:w-auto">
+                <button id="btnMenuAdmin" onclick="toggleModal('modalCadastrarUsuario')" class="hidden bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2 px-3 rounded-md transition shadow text-xs sm:text-sm flex-1 sm:flex-none">
+                    👤 Usuários
+                </button>
+                <button onclick="toggleModal('modalEstoque')" class="bg-gray-800 hover:bg-gray-900 text-white font-semibold py-2 px-3 rounded-md transition shadow text-xs sm:text-sm flex-1 sm:flex-none">
+                    ⚙️ Estoque/Preços
+                </button>
+                <button onclick="fazerLogout()" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-semibold py-2 px-3 rounded-md transition text-xs sm:text-sm text-center">
+                    Sair
+                </button>
+            </div>
+        </header>
+
+        <section id="quadrosEstoque" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        </section>
+
+        <section class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-xl font-semibold mb-4 text-gray-700">Incluir Novo Pedido</h2>
+            <form id="formPedido" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Nome do Cliente</label>
+                        <input type="text" id="cliente" required placeholder="Ex: João Silva" class="w-full p-2 border rounded-md outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Selecione o Café</label>
+                        <select id="tipoProduto" class="w-full p-2 border rounded-md outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Tamanho do Pacote</label>
+                        <select id="tamanhoPacote" class="w-full p-2 border rounded-md outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+                            <option value="250g">250g</option>
+                            <option value="500g">500g</option>
+                            <option value="1kg">1kg</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Quantidade</label>
+                        <input type="number" id="quantidade" min="1" value="1" required class="w-full p-2 border rounded-md outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Tipo do Café</label>
+                        <select id="tipoCafe" class="w-full p-2 border rounded-md outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+                            <option value="grao">Grão</option>
+                            <option value="moido">Moído</option>
+                        </select>
+                    </div>
+                    <div id="campoMoagem" class="hidden">
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Tipo de Moagem</label>
+                        <select id="tipoMoagem" class="w-full p-2 border rounded-md outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+                            <option value="Filtrado">Filtrado</option>
+                            <option value="Moca">Moca</option>
+                            <option value="Prensa">Prensa</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Tipo de Envio</label>
+                        <select id="tipoEnvio" class="w-full p-2 border rounded-md outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+                            <option value="entrega">Entrega</option>
+                            <option value="retirada">Retirada</option>
+                        </select>
+                    </div>
+                    <div id="campoEndereco">
+                        <label id="labelEndereco" class="block text-sm font-medium text-gray-600 mb-1">Endereço de Entrega</label>
+                        <input type="text" id="inputEndereco" placeholder="Rua, Número, Bairro" class="w-full p-2 border rounded-md outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="flex items-center h-full pt-2">
+                        <label class="flex items-center cursor-pointer gap-2 bg-gray-50 p-2 rounded-md border border-gray-200 w-full justify-center select-none">
+                            <input type="checkbox" id="pedidoPago" class="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500">
+                            <span class="text-sm font-medium text-gray-700">Pedido já está Pago</span>
+                        </label>
+                    </div>
+                    <div class="md:col-span-3 flex flex-col sm:flex-row justify-end items-stretch sm:items-end mt-2 sm:mt-0">
+                        <button type="submit" class="bg-amber-700 hover:bg-amber-800 text-white font-bold py-2.5 px-6 rounded-md transition shadow w-full sm:w-auto text-center text-sm">
+                            Adicionar Pedido
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <section class="bg-white rounded-lg shadow-md overflow-hidden">
+            <h2 class="text-xl font-semibold p-6 border-b text-gray-700">Pedidos em Andamento</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse whitespace-nowrap">
+                    <thead>
+                        <tr class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wider">
+                            <th class="p-4">Data</th>
+                            <th class="p-4">ID</th>
+                            <th class="p-4">Cliente</th>
+                            <th class="p-4">Café</th>
+                            <th class="p-4">Tamanho</th>
+                            <th class="p-4">Tipo</th>
+                            <th class="p-4">Endereço</th>
+                            <th class="p-4">Valor Total</th>
+                            <th class="p-4">Pagamento</th>
+                            <th class="p-4">Status</th>
+                            <th class="p-4">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listaPedidos" class="divide-y divide-gray-200 text-gray-700 text-sm">
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="bg-gray-50 px-6 py-4 border-t flex flex-col sm:flex-row justify-between items-center text-sm text-gray-600 gap-4">
+                <div class="text-center sm:text-left">
+                    Mostrando pedidos <span id="pagNavInicio" class="font-semibold">0</span> até <span id="pagNavFim" class="font-semibold">0</span> de <span id="pagNavTotal" class="font-semibold">0</span>
+                </div>
+                <div class="flex gap-2 w-full sm:w-auto justify-center">
+                    <button id="btnAnterior" onclick="mudarPagina(-1)" class="bg-white hover:bg-gray-100 border text-gray-700 font-semibold py-1.5 px-4 rounded transition disabled:opacity-50 disabled:cursor-not-allowed flex-1 sm:flex-none text-center">
+                        ◀ Anterior
+                    </button>
+                    <button id="btnProximo" onclick="mudarPagina(1)" class="bg-white hover:bg-gray-100 border text-gray-700 font-semibold py-1.5 px-4 rounded transition disabled:opacity-50 disabled:cursor-not-allowed flex-1 sm:flex-none text-center">
+                        Próximo ▶
+                    </button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="fixed bottom-6 right-6 z-40">
+        <button onclick="toggleModal('modalStatus')" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 px-5 rounded-full shadow-2xl flex items-center gap-2 transition transform hover:scale-105 text-sm sm:text-base">
+            📋 <span>Alterar Status por ID</span>
+        </button>
+    </div>
+
+    <div id="modalEstoque" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg max-w-md w-full p-6 shadow-xl overflow-y-auto max-h-[90vh]">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Gerenciamento de Estoque e Preços</h3>
+            <form id="formEstoque" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Ação</label>
+                    <select id="acaoEstoque" class="w-full p-2 border rounded-md text-sm" onchange="alternarCamposEstoque()">
+                        <option value="modificar">Modificar Estoque / Nome / Preço</option>
+                        <option value="novo">Cadastrar Novo Tipo de Café</option>
+                    </select>
+                </div>
+                <div id="divSelecionarCafe">
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Selecione o Café</label>
+                    <select id="selectModificarCafe" class="w-full p-2 border rounded-md text-sm" onchange="preencherDadosParaEditar()"></select>
+                </div>
+                <div id="divNomeCafe">
+                    <label id="labelNomeCafe" class="block text-sm font-medium text-gray-600 mb-1">Editar Nome do Café</label>
+                    <input type="text" id="nomeNovoCafe" placeholder="Ex: Catuaí Vermelho" class="w-full p-2 border rounded-md text-sm">
+                </div>
+                <div>
+                    <label id="labelQtdEstoque" class="block text-sm font-medium text-gray-600 mb-1">Nova Quantidade Total (kg)</label>
+                    <input type="number" step="0.01" id="qtdEstoque" required min="0" placeholder="Ex: 45.50" class="w-full p-2 border rounded-md text-sm">
+                </div>
+                
+                <div class="border-t pt-2 space-y-3">
+                    <h4 class="text-sm font-bold text-amber-900">Definição de Preços por Pacote (R$)</h4>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Pacote 250g</label>
+                            <input type="number" step="0.01" id="preco250g" required min="0" placeholder="0.00" class="w-full p-2 border rounded-md text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Pacote 500g</label>
+                            <input type="number" step="0.01" id="preco500g" required min="0" placeholder="0.00" class="w-full p-2 border rounded-md text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Pacote 1kg</label>
+                            <input type="number" step="0.01" id="preco1kg" required min="0" placeholder="0.00" class="w-full p-2 border rounded-md text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t">
+                    <button type="button" onclick="toggleModal('modalEstoque')" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm">Cancelar</button>
+                    <button type="submit" class="bg-amber-700 text-white px-4 py-2 rounded-md font-medium text-sm">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalStatus" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg max-w-md w-full p-6 shadow-xl">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Alterar Estado do Pedido</h3>
+            <form id="formAlterarStatus" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">ID do Pedido</label>
+                    <input type="number" id="idPedidoStatus" required placeholder="Ex: 1" class="w-full p-2 border rounded-md outline-none text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Novo Status</label>
+                    <select id="novoStatusSelecionado" class="w-full p-2 border rounded-md outline-none text-sm">
+                        <option value="aguardando">Aguardando (Amarelo)</option>
+                        <option value="separado">Separado (Azul)</option>
+                        <option value="entregue">Entregue (Verde)</option>
+                    </select>
+                </div>
+                <div class="flex flex-col sm:flex-row justify-between gap-2 pt-2 border-t border-gray-100">
+                    <button type="button" onclick="excluirPedidoAPI()" class="bg-red-50 hover:bg-red-100 text-red-600 font-semibold px-4 py-2 rounded-md border border-red-200 order-2 sm:order-1 transition text-sm">
+                        🗑️ Excluir Pedido
+                    </button>
+                    <div class="flex gap-2 order-1 sm:order-2 justify-end">
+                        <button type="button" onclick="toggleModal('modalStatus')" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm">Cancelar</button>
+                        <button type="submit" class="bg-amber-600 text-white px-4 py-2 rounded-md font-medium text-sm">Atualizar Status</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalCadastrarUsuario" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg max-w-md w-full p-6 shadow-xl">
+            <h3 class="text-lg font-bold text-gray-800 mb-2">👤 Gerenciamento de Usuários</h3>
+            <p class="text-xs text-gray-500 mb-4">Acesso restrito. Apenas administradores conseguem gerar ou remover credenciais.</p>
+            
+            <form id="formCadastroUsuario" class="space-y-4 mb-6">
+                <h4 class="text-xs font-bold text-blue-800 uppercase tracking-wider">Cadastrar Novo Acesso</h4>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Nome de Usuário</label>
+                    <input type="text" id="novoUsername" required placeholder="Ex: carlos.cafe" class="w-full p-2 border rounded-md outline-none text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Senha Provisória</label>
+                    <input type="password" id="novaSenha" required placeholder="Mínimo 6 caracteres" class="w-full p-2 border rounded-md outline-none text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Nível de Acesso (Cargo)</label>
+                    <select id="novoCargo" class="w-full p-2 border rounded-md outline-none text-sm">
+                        <option value="operador">Operador (Gere pedidos e baixa estoque)</option>
+                        <option value="admin">Administrador (Controle total do sistema)</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-blue-700 hover:bg-blue-800 text-white py-2 rounded-md font-medium text-sm transition">
+                    Concluir Cadastro
+                </button>
+            </form>
+
+            <div class="border-t pt-4 space-y-3">
+                <h4 class="text-xs font-bold text-red-800 uppercase tracking-wider">Excluir Usuário Existente</h4>
+                <div class="flex gap-2">
+                    <input type="text" id="usernameDeletar" placeholder="Digite o username exato" class="w-full p-2 border rounded-md outline-none text-sm border-gray-300 focus:border-red-500">
+                    <button onclick="excluirUsuarioAPI()" class="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 border border-red-200 rounded-md font-semibold text-sm transition">
+                        Excluir
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-4 border-t mt-4">
+                <button type="button" onclick="toggleModal('modalCadastrarUsuario')" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm">Fechar Painel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="pedidos.js"></script>
+</body>
+</html>
