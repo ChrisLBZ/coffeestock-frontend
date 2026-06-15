@@ -6,7 +6,7 @@ if (!token) {
     window.location.href = "login.html"; 
 }
 
-const API_URL = "https://coffeestock-backend.onrender.com";
+const API_URL = "coffeestock-backend.vercel.app";
 let cafesCache = {}; 
 const ITENS_POR_PAGINA = 10;
 let skipAtual = 0; 
