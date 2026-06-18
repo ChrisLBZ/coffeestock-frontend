@@ -6,13 +6,13 @@
     <title>Controle de Estoque de Café</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 p-4 sm:p-8 pb-24">
+<body class="bg-gray-100 p-3 sm:p-8 pb-24">
 
     <div class="max-w-7xl mx-auto">
-        <header class="mb-8 flex flex-col sm:flex-row justify-between items-center bg-white p-4 rounded-lg shadow-sm gap-4">
+        <header class="mb-6 flex flex-col sm:flex-row justify-between items-center bg-white p-4 rounded-lg shadow-sm gap-4">
             <div class="flex items-center gap-4 justify-between w-full sm:w-auto">
-                <h1 class="text-2xl font-bold text-gray-800">☕ CoffeeStock</h1>
-                <span id="usuarioLogadoBadge" class="text-xs bg-amber-100 text-amber-800 font-semibold px-2.5 py-1 rounded-full"></span>
+                <h1 class="text-xl sm:text-2xl font-bold text-gray-800">☕ CoffeeStock</h1>
+                <span id="usuarioLogadoBadge" class="text-[10px] sm:text-xs bg-amber-100 text-amber-800 font-semibold px-2.5 py-1 rounded-full"></span>
             </div>
             <div class="flex flex-wrap gap-2 justify-center w-full sm:w-auto">
                 <button id="btnMenuAdmin" onclick="toggleModal('modalCadastrarUsuario')" class="hidden bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2 px-3 rounded-md transition shadow text-xs sm:text-sm flex-1 sm:flex-none">
@@ -27,11 +27,11 @@
             </div>
         </header>
 
-        <section id="quadrosEstoque" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <section id="quadrosEstoque" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 mb-6">
         </section>
 
-        <section class="bg-white p-6 rounded-lg shadow-md mb-8">
-            <h2 class="text-xl font-semibold mb-4 text-gray-700">Incluir Novo Pedido</h2>
+        <section class="bg-white p-4 sm:p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-lg sm:text-xl font-semibold mb-4 text-gray-700">Incluir Novo Pedido</h2>
             <form id="formPedido" class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
@@ -103,27 +103,20 @@
         </section>
 
         <section class="bg-white rounded-lg shadow-md overflow-hidden">
-            <h2 class="text-xl font-semibold p-6 border-b text-gray-700">Pedidos em Andamento</h2>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse whitespace-nowrap">
-                    <thead>
-                        <tr class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wider">
-                            <th class="p-4">Data</th>
-                            <th class="p-4">ID</th>
-                            <th class="p-4">Cliente</th>
-                            <th class="p-4">Café</th>
-                            <th class="p-4">Tamanho</th>
-                            <th class="p-4">Tipo</th>
-                            <th class="p-4">Endereço</th>
-                            <th class="p-4">Valor Total</th>
-                            <th class="p-4">Pagamento</th>
-                            <th class="p-4">Status</th>
-                            <th class="p-4">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="listaPedidos" class="divide-y divide-gray-200 text-gray-700 text-sm">
-                    </tbody>
-                </table>
+            <h2 class="text-xl font-semibold p-5 border-b text-gray-700">Pedidos em Andamento</h2>
+            
+            <div class="hidden md:grid grid-cols-12 bg-gray-50 text-gray-600 uppercase text-xs tracking-wider font-bold p-4 border-b">
+                <div class="col-span-2">Data / ID</div>
+                <div class="col-span-2">Cliente</div>
+                <div class="col-span-2">Café / Tamanho</div>
+                <div class="col-span-1">Tipo</div>
+                <div class="col-span-2">Logística</div>
+                <div class="col-span-1">Total</div>
+                <div class="col-span-1 text-center">Pagamento</div>
+                <div class="col-span-1 text-right">Ações</div>
+            </div>
+
+            <div id="listaPedidos" class="divide-y divide-gray-200 text-gray-700 text-sm flex flex-col">
             </div>
 
             <div class="bg-gray-50 px-6 py-4 border-t flex flex-col sm:flex-row justify-between items-center text-sm text-gray-600 gap-4">
@@ -254,7 +247,7 @@
                 </button>
             </form>
 
-            <div class="border-t pt-4 space-y-3">
+            <div class="text-center mt-6 pt-4 border-t border-gray-100">
                 <h4 class="text-xs font-bold text-red-800 uppercase tracking-wider">Excluir Usuário Existente</h4>
                 <div class="flex gap-2">
                     <input type="text" id="usernameDeletar" placeholder="Digite o username exato" class="w-full p-2 border rounded-md outline-none text-sm border-gray-300 focus:border-red-500">

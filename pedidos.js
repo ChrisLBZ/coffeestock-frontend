@@ -38,7 +38,7 @@ function fazerLogout() {
     window.location.href = "login.html";
 }
 
-// Buscar dados do Estoque
+// Buscar dados do Estoque (Cards Reduzidos e Responsivos para Celular)
 async function carregarEstoque() {
     try {
         const res = await fetch(`${API_URL}/estoque`, {
@@ -59,14 +59,17 @@ async function carregarEstoque() {
             cafesCache[item.id] = item;
             const cor = cores[index % cores.length];
 
+            // ALTERADO: Redução drástica de padding (p-3), textos (text-xs/text-xl) e layout extremamente compacto para caber até 3 lado a lado
             containerQuadros.innerHTML += `
-                <div class="bg-white p-5 rounded-lg shadow-md border-t-4 ${cor}">
-                    <h3 class="text-gray-500 text-sm font-semibold uppercase">${item.nome}</h3>
-                    <p class="text-3xl font-bold text-gray-800 mt-1"><span>${item.quantidade_kg.toFixed(2)}</span> kg</p>
-                    <div class="mt-3 pt-2 border-t border-gray-100 text-xs text-gray-500 space-y-0.5">
-                        <span class="block">📦 250g: <b>R$ ${item.preco_250g.toFixed(2)}</b></span>
-                        <span class="block">📦 500g: <b>R$ ${item.preco_500g.toFixed(2)}</b></span>
-                        <span class="block">📦 1kg: <b>R$ ${item.preco_1kg.toFixed(2)}</b></span>
+                <div class="bg-white p-3 rounded-lg shadow-sm border-t-4 ${cor} flex flex-col justify-between transition hover:shadow-md">
+                    <div>
+                        <h3 class="text-gray-400 text-[10px] font-bold uppercase truncate" title="${item.nome}">${item.nome}</h3>
+                        <p class="text-xl font-black text-gray-800 mt-0.5"><span>${item.quantidade_kg.toFixed(2)}</span> kg</p>
+                    </div>
+                    <div class="mt-2 pt-1.5 border-t border-gray-100 text-[9px] text-gray-500 space-y-0.5 font-medium">
+                        <div class="flex justify-between"><span>250g:</span> <b class="text-gray-700">R$ ${item.preco_250g.toFixed(0)}</b></div>
+                        <div class="flex justify-between"><span>500g:</span> <b class="text-gray-700">R$ ${item.preco_500g.toFixed(0)}</b></div>
+                        <div class="flex justify-between"><span>1kg:</span> <b class="text-gray-700">R$ ${item.preco_1kg.toFixed(0)}</b></div>
                     </div>
                 </div>`;
 
@@ -79,7 +82,7 @@ async function carregarEstoque() {
     }
 }
 
-// Carrega pedidos injetando as linhas de forma não destrutiva para o layout
+// Carrega pedidos injetando os cards de forma estável no contêiner
 async function carregarPedidos() {
     try {
         const res = await fetch(`${API_URL}/pedidos?skip=${skipAtual}&limit=${ITENS_POR_PAGINA}`, {
@@ -170,7 +173,6 @@ function preencherDadosParaEditar() {
     }
 }
 
-// Alterna Modais
 function toggleModal(id) {
     document.getElementById(id).classList.toggle('hidden');
     if(id === 'modalEstoque') {
@@ -308,7 +310,7 @@ document.getElementById('formEstoque').addEventListener('submit', async function
     }
 });
 
-// Atualizar Status (Atômico sem pulo)
+// Atualizar Status
 async function atualizarStatusAPI(e, id, novoStatus) {
     if (e) {
         e.preventDefault();
@@ -334,7 +336,7 @@ async function atualizarStatusAPI(e, id, novoStatus) {
     }
 }
 
-// Alternar Pagamento Clicável (Atômico sem pulo)
+// Alternar Pagamento Clicável
 async function alternarPagamentoAPI(e, id, estadoAtual) {
     if (e) {
         e.preventDefault();
@@ -414,23 +416,20 @@ async function excluirPedidoAPI() {
     }
 }
 
-// Função de renderização cirúrgica célula por célula
+// ALTERADO: Mudamos de elemento 'tr' para 'div' estruturada. 
+// Renderiza em formato clássico esticado em telas grandes e quebra em 3 blocos empilhados no celular de forma limpa.
 function renderizarLinhaPedido(p) {
     const idLinha = `pedido-row-${p.id}`;
     let linhaElemento = document.getElementById(idLinha);
     const existeNoDom = !!linhaElemento;
 
     if (!linhaElemento) {
-        linhaElemento = document.createElement('tr');
+        linhaElemento = document.createElement('div');
         linhaElemento.id = idLinha;
-        linhaElemento.className = "hover:bg-gray-50 border-b text-xs sm:text-sm transition-colors";
-        
-        for (let i = 0; i < 11; i++) {
-            linhaElemento.appendChild(document.createElement('td'));
-        }
+        // Aplica o grid de 12 colunas no desktop e vira um bloco flexível empilhado em celular
+        linhaElemento.className = "p-4 flex flex-col gap-2 md:grid md:grid-cols-12 md:items-center hover:bg-gray-50 transition-colors border-b border-gray-100";
     }
 
-    const celulas = linhaElemento.children;
     const cafeObj = cafesCache[p.cafe_id];
     const nomeCafe = cafeObj ? cafeObj.nome : "Café Removido";
     const moagemStr = p.tipo_cafe === 'moido' ? `Moído (${p.tipo_moagem})` : 'Grão';
@@ -438,49 +437,66 @@ function renderizarLinhaPedido(p) {
     const dataFormatada = p.data_pedido ? new Date(p.data_pedido).toLocaleDateString('pt-BR') : 'N/A';
     const valorTotalFormatado = p.valor_total ? `R$ ${p.valor_total.toFixed(2)}` : 'R$ 0,00';
 
-    celulas[0].className = "p-4 text-gray-500 font-medium";
-    celulas[0].textContent = dataFormatada;
-
-    celulas[1].className = "p-4 font-bold text-gray-400";
-    celulas[1].textContent = `#${p.id}`;
-
-    celulas[2].className = "p-4 font-medium";
-    celulas[2].textContent = p.cliente;
-
-    celulas[3].className = "p-4 text-amber-900 font-semibold";
-    celulas[3].textContent = nomeCafe;
-
-    celulas[4].className = "p-4";
-    celulas[4].innerHTML = `${p.tamanho_pacote} <span class="text-xs text-gray-400">x${p.quantidade}</span>`;
-
-    celulas[5].className = "p-4 text-xs";
-    celulas[5].textContent = moagemStr;
-
-    celulas[6].className = "p-4";
-    celulas[6].innerHTML = `
-        <span class="block font-medium ${p.tipo_envio === 'entrega' ? 'text-amber-800' : 'text-blue-800'}">${p.tipo_envio.toUpperCase()}</span>
-        <span class="text-xs text-gray-500 block max-w-xs truncate">${enderecoStr}</span>`;
-
-    celulas[7].className = "p-4 font-bold text-gray-800";
-    celulas[7].textContent = valorTotalFormatado;
-
-    celulas[8].className = "p-4";
-    celulas[8].innerHTML = p.pago 
+    const corStatus = p.status === 'entregue' ? 'bg-green-100 text-green-800 border-green-300' : (p.status === 'separado' ? 'bg-blue-100 text-blue-800 border-blue-300' : 'bg-yellow-100 text-yellow-800 border-yellow-300');
+    
+    const btnPagamento = p.pago 
         ? `<button onclick="alternarPagamentoAPI(event, ${p.id}, ${p.pago})" class="inline-flex items-center gap-1 text-xs font-bold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded cursor-pointer transition-transform duration-75 active:scale-95" title="Mudar para Pendente">🟢 Pago</button>`
         : `<button onclick="alternarPagamentoAPI(event, ${p.id}, ${p.pago})" class="inline-flex items-center gap-1 text-xs font-bold text-gray-500 bg-gray-50 border border-gray-200 px-2 py-0.5 rounded cursor-pointer transition-transform duration-75 active:scale-95" title="Mudar para Pago">⚪ Pendente</button>`;
 
-    celulas[9].className = "p-4";
+    let acaoBotao = `<span class="text-xs text-gray-400 font-medium">Concluído</span>`;
     if (p.status === 'aguardando') {
-        celulas[9].innerHTML = `<span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800 border border-yellow-300">Aguardando</span>`;
-        celulas[10].innerHTML = `<button onclick="atualizarStatusAPI(event, ${p.id}, 'separado')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-semibold py-1 px-2.5 rounded transition">Separar</button>`;
+        acaoBotao = `<button onclick="atualizarStatusAPI(event, ${p.id}, 'separado')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-semibold py-1 px-2.5 rounded transition w-full md:w-auto text-center">Separar</button>`;
     } else if (p.status === 'separado') {
-        celulas[9].innerHTML = `<span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 border border-blue-300">Separado</span>`;
-        celulas[10].innerHTML = `<button onclick="atualizarStatusAPI(event, ${p.id}, 'entregue')" class="bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 text-xs font-semibold py-1 px-2.5 rounded transition">Entregar</button>`;
-    } else {
-        celulas[9].innerHTML = `<span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-800 border border-green-300">Entregue</span>`;
-        celulas[10].innerHTML = `<span class="text-xs text-gray-400 font-medium">Concluído</span>`;
+        acaoBotao = `<button onclick="atualizarStatusAPI(event, ${p.id}, 'entregue')" class="bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 text-xs font-semibold py-1 px-2.5 rounded transition w-full md:w-auto text-center">Entregar</button>`;
     }
-    celulas[10].className = "p-4";
+
+    // ARQUITETURA MULTILINHAS (3 blocos bem definidos em Mobile)
+    linhaElemento.innerHTML = `
+        <div class="col-span-2 flex justify-between items-center md:flex-col md:items-start">
+            <span class="text-gray-400 text-xs md:text-sm font-medium">${dataFormatada}</span>
+            <span class="font-bold text-amber-800 text-xs md:text-sm">#${p.id}</span>
+        </div>
+
+        <div class="col-span-2 font-semibold text-gray-800 text-sm md:text-base">
+            <span class="text-xs text-gray-400 font-normal md:hidden block">Cliente:</span>
+            ${p.cliente}
+        </div>
+
+        <div class="col-span-2 text-xs md:text-sm">
+            <span class="text-xs text-gray-400 font-normal md:hidden block">Produto:</span>
+            <span class="text-amber-900 font-semibold">${nomeCafe}</span> 
+            <span class="text-gray-500 font-bold">(${p.tamanho_pacote} x${p.quantidade})</span>
+        </div>
+        
+        <div class="col-span-1 text-xs text-gray-600">
+            <span class="text-xs text-gray-400 font-normal md:hidden block">Moagem:</span>
+            ${moagemStr}
+        </div>
+
+        <div class="col-span-2 text-xs">
+            <span class="text-xs text-gray-400 font-normal md:hidden block">Logística:</span>
+            <span class="font-bold ${p.tipo_envio === 'entrega' ? 'text-amber-800' : 'text-blue-800'}">${p.tipo_envio.toUpperCase()}</span>
+            <p class="text-gray-500 truncate max-w-xs text-[11px] md:text-xs" title="${迫nderecoStr}">${enderecoStr}</p>
+        </div>
+
+        <div class="col-span-1 font-bold text-gray-900 text-sm md:text-base">
+            <span class="text-xs text-gray-400 font-normal md:hidden block">Subtotal:</span>
+            ${valorTotalFormatado}
+        </div>
+
+        <div class="col-span-1 flex items-center justify-between md:justify-center border-t border-dashed pt-2 mt-1 md:border-0 md:pt-0 md:mt-0">
+            <span class="text-xs text-gray-400 font-normal md:hidden">Pagamento:</span>
+            ${btnPagamento}
+        </div>
+
+        <div class="col-span-1 flex items-center justify-between md:justify-end gap-2">
+            <span class="text-xs text-gray-400 font-normal md:hidden">Operação:</span>
+            <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+                <span class="px-2 py-0.5 text-[10px] font-bold rounded-full border ${corStatus} capitalize">${p.status}</span>
+                ${acaoBotao}
+            </div>
+        </div>
+    `;
 
     if (!existeNoDom) {
         listaPedidos.appendChild(linhaElemento);
