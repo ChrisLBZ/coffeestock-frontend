@@ -38,7 +38,7 @@ function fazerLogout() {
     window.location.href = "login.html";
 }
 
-// Buscar dados do Estoque (Cards Reduzidos e Responsivos para Celular)
+// Buscar dados do Estoque
 async function carregarEstoque() {
     try {
         const res = await fetch(`${API_URL}/estoque`, {
@@ -59,7 +59,6 @@ async function carregarEstoque() {
             cafesCache[item.id] = item;
             const cor = cores[index % cores.length];
 
-            // ALTERADO: Redução drástica de padding (p-3), textos (text-xs/text-xl) e layout extremamente compacto para caber até 3 lado a lado
             containerQuadros.innerHTML += `
                 <div class="bg-white p-3 rounded-lg shadow-sm border-t-4 ${cor} flex flex-col justify-between transition hover:shadow-md">
                     <div>
@@ -67,9 +66,9 @@ async function carregarEstoque() {
                         <p class="text-xl font-black text-gray-800 mt-0.5"><span>${item.quantidade_kg.toFixed(2)}</span> kg</p>
                     </div>
                     <div class="mt-2 pt-1.5 border-t border-gray-100 text-[9px] text-gray-500 space-y-0.5 font-medium">
-                        <div class="flex justify-between"><span>250g:</span> <b class="text-gray-700">R$ ${item.preco_250g.toFixed(0)}</b></div>
-                        <div class="flex justify-between"><span>500g:</span> <b class="text-gray-700">R$ ${item.preco_500g.toFixed(0)}</b></div>
-                        <div class="flex justify-between"><span>1kg:</span> <b class="text-gray-700">R$ ${item.preco_1kg.toFixed(0)}</b></div>
+                        <div class="flex justify-between"><span>250g:</span> <b class="text-gray-700">R$ ${item.preco_250g.toFixed(2)}</b></div>
+                        <div class="flex justify-between"><span>500g:</span> <b class="text-gray-700">R$ ${item.preco_500g.toFixed(2)}</b></div>
+                        <div class="flex justify-between"><span>1kg:</span> <b class="text-gray-700">R$ ${item.preco_1kg.toFixed(2)}</b></div>
                     </div>
                 </div>`;
 
@@ -416,8 +415,7 @@ async function excluirPedidoAPI() {
     }
 }
 
-// ALTERADO: Mudamos de elemento 'tr' para 'div' estruturada. 
-// Renderiza em formato clássico esticado em telas grandes e quebra em 3 blocos empilhados no celular de forma limpa.
+// Renderiza em formato de bloco multi-linhas fluido
 function renderizarLinhaPedido(p) {
     const idLinha = `pedido-row-${p.id}`;
     let linhaElemento = document.getElementById(idLinha);
@@ -426,7 +424,6 @@ function renderizarLinhaPedido(p) {
     if (!linhaElemento) {
         linhaElemento = document.createElement('div');
         linhaElemento.id = idLinha;
-        // Aplica o grid de 12 colunas no desktop e vira um bloco flexível empilhado em celular
         linhaElemento.className = "p-4 flex flex-col gap-2 md:grid md:grid-cols-12 md:items-center hover:bg-gray-50 transition-colors border-b border-gray-100";
     }
 
@@ -450,7 +447,7 @@ function renderizarLinhaPedido(p) {
         acaoBotao = `<button onclick="atualizarStatusAPI(event, ${p.id}, 'entregue')" class="bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 text-xs font-semibold py-1 px-2.5 rounded transition w-full md:w-auto text-center">Entregar</button>`;
     }
 
-    // ARQUITETURA MULTILINHAS (3 blocos bem definidos em Mobile)
+    // CORRIGIDO: Removido caractere corrompido \迫 do title do endereço
     linhaElemento.innerHTML = `
         <div class="col-span-2 flex justify-between items-center md:flex-col md:items-start">
             <span class="text-gray-400 text-xs md:text-sm font-medium">${dataFormatada}</span>
@@ -476,7 +473,7 @@ function renderizarLinhaPedido(p) {
         <div class="col-span-2 text-xs">
             <span class="text-xs text-gray-400 font-normal md:hidden block">Logística:</span>
             <span class="font-bold ${p.tipo_envio === 'entrega' ? 'text-amber-800' : 'text-blue-800'}">${p.tipo_envio.toUpperCase()}</span>
-            <p class="text-gray-500 truncate max-w-xs text-[11px] md:text-xs" title="${迫nderecoStr}">${enderecoStr}</p>
+            <p class="text-gray-500 truncate max-w-xs text-[11px] md:text-xs" title="${enderecoStr}">${enderecoStr}</p>
         </div>
 
         <div class="col-span-1 font-bold text-gray-900 text-sm md:text-base">
