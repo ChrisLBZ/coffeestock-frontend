@@ -416,6 +416,7 @@ async function excluirPedidoAPI() {
 }
 
 // Renderiza em formato de bloco multi-linhas fluido
+// Renderiza em formato de bloco multi-linhas fluido (Ajustado para não truncar no Desktop)
 function renderizarLinhaPedido(p) {
     const idLinha = `pedido-row-${p.id}`;
     let linhaElemento = document.getElementById(idLinha);
@@ -424,6 +425,7 @@ function renderizarLinhaPedido(p) {
     if (!linhaElemento) {
         linhaElemento = document.createElement('div');
         linhaElemento.id = idLinha;
+        // Mantém o flex-col para mobile e o grid de 12 colunas para o desktop
         linhaElemento.className = "p-4 flex flex-col gap-2 md:grid md:grid-cols-12 md:items-center hover:bg-gray-50 transition-colors border-b border-gray-100";
     }
 
@@ -437,29 +439,29 @@ function renderizarLinhaPedido(p) {
     const corStatus = p.status === 'entregue' ? 'bg-green-100 text-green-800 border-green-300' : (p.status === 'separado' ? 'bg-blue-100 text-blue-800 border-blue-300' : 'bg-yellow-100 text-yellow-800 border-yellow-300');
     
     const btnPagamento = p.pago 
-        ? `<button onclick="alternarPagamentoAPI(event, ${p.id}, ${p.pago})" class="inline-flex items-center gap-1 text-xs font-bold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded cursor-pointer transition-transform duration-75 active:scale-95" title="Mudar para Pendente">🟢 Pago</button>`
-        : `<button onclick="alternarPagamentoAPI(event, ${p.id}, ${p.pago})" class="inline-flex items-center gap-1 text-xs font-bold text-gray-500 bg-gray-50 border border-gray-200 px-2 py-0.5 rounded cursor-pointer transition-transform duration-75 active:scale-95" title="Mudar para Pago">⚪ Pendente</button>`;
+        ? `<button onclick="alternarPagamentoAPI(event, ${p.id}, ${p.pago})" class="inline-flex items-center gap-1 text-xs font-bold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded cursor-pointer transition-transform duration-75 active:scale-95 whitespace-nowrap" title="Mudar para Pendente">🟢 Pago</button>`
+        : `<button onclick="alternarPagamentoAPI(event, ${p.id}, ${p.pago})" class="inline-flex items-center gap-1 text-xs font-bold text-gray-500 bg-gray-50 border border-gray-200 px-2 py-0.5 rounded cursor-pointer transition-transform duration-75 active:scale-95 whitespace-nowrap" title="Mudar para Pago">⚪ Pendente</button>`;
 
-    let acaoBotao = `<span class="text-xs text-gray-400 font-medium">Concluído</span>`;
+    let acaoBotao = `<span class="text-xs text-gray-400 font-medium whitespace-nowrap">Concluído</span>`;
     if (p.status === 'aguardando') {
-        acaoBotao = `<button onclick="atualizarStatusAPI(event, ${p.id}, 'separado')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-semibold py-1 px-2.5 rounded transition w-full md:w-auto text-center">Separar</button>`;
+        acaoBotao = `<button onclick="atualizarStatusAPI(event, ${p.id}, 'separado')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-semibold py-1 px-2.5 rounded transition w-full md:w-auto text-center whitespace-nowrap">Separar</button>`;
     } else if (p.status === 'separado') {
-        acaoBotao = `<button onclick="atualizarStatusAPI(event, ${p.id}, 'entregue')" class="bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 text-xs font-semibold py-1 px-2.5 rounded transition w-full md:w-auto text-center">Entregar</button>`;
+        acaoBotao = `<button onclick="atualizarStatusAPI(event, ${p.id}, 'entregue')" class="bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 text-xs font-semibold py-1 px-2.5 rounded transition w-full md:w-auto text-center whitespace-nowrap">Entregar</button>`;
     }
 
-    // CORRIGIDO: Removido caractere corrompido \迫 do title do endereço
+    // ARQUITETURA CORRIGIDA: Redistribuição de colunas (md:col-span) para dar mais folga aos botões
     linhaElemento.innerHTML = `
-        <div class="col-span-2 flex justify-between items-center md:flex-col md:items-start">
+        <div class="col-span-1 flex justify-between items-center md:flex-col md:items-start">
             <span class="text-gray-400 text-xs md:text-sm font-medium">${dataFormatada}</span>
             <span class="font-bold text-amber-800 text-xs md:text-sm">#${p.id}</span>
         </div>
 
-        <div class="col-span-2 font-semibold text-gray-800 text-sm md:text-base">
+        <div class="col-span-2 font-semibold text-gray-800 text-sm md:text-base truncate">
             <span class="text-xs text-gray-400 font-normal md:hidden block">Cliente:</span>
             ${p.cliente}
         </div>
 
-        <div class="col-span-2 text-xs md:text-sm">
+        <div class="col-span-2 text-xs md:text-sm truncate">
             <span class="text-xs text-gray-400 font-normal md:hidden block">Produto:</span>
             <span class="text-amber-900 font-semibold">${nomeCafe}</span> 
             <span class="text-gray-500 font-bold">(${p.tamanho_pacote} x${p.quantidade})</span>
@@ -473,23 +475,23 @@ function renderizarLinhaPedido(p) {
         <div class="col-span-2 text-xs">
             <span class="text-xs text-gray-400 font-normal md:hidden block">Logística:</span>
             <span class="font-bold ${p.tipo_envio === 'entrega' ? 'text-amber-800' : 'text-blue-800'}">${p.tipo_envio.toUpperCase()}</span>
-            <p class="text-gray-500 truncate max-w-xs text-[11px] md:text-xs" title="${enderecoStr}">${enderecoStr}</p>
+            <p class="text-gray-500 truncate max-w-[140px] text-[11px] md:text-xs" title="${enderecoStr}">${enderecoStr}</p>
         </div>
 
-        <div class="col-span-1 font-bold text-gray-900 text-sm md:text-base">
+        <div class="col-span-1 font-bold text-gray-900 text-sm md:text-base whitespace-nowrap">
             <span class="text-xs text-gray-400 font-normal md:hidden block">Subtotal:</span>
             ${valorTotalFormatado}
         </div>
 
-        <div class="col-span-1 flex items-center justify-between md:justify-center border-t border-dashed pt-2 mt-1 md:border-0 md:pt-0 md:mt-0">
+        <div class="col-span-1 flex items-center justify-between md:justify-start border-t border-dashed pt-2 mt-1 md:border-0 md:pt-0 md:mt-0">
             <span class="text-xs text-gray-400 font-normal md:hidden">Pagamento:</span>
             ${btnPagamento}
         </div>
 
-        <div class="col-span-1 flex items-center justify-between md:justify-end gap-2">
+        <div class="col-span-2 flex items-center justify-between md:justify-end gap-2">
             <span class="text-xs text-gray-400 font-normal md:hidden">Operação:</span>
-            <div class="flex items-center gap-2 w-full md:w-auto justify-end">
-                <span class="px-2 py-0.5 text-[10px] font-bold rounded-full border ${corStatus} capitalize">${p.status}</span>
+            <div class="flex items-center gap-1.5 w-full md:w-auto justify-end">
+                <span class="px-2 py-0.5 text-[10px] font-bold rounded-full border ${corStatus} capitalize whitespace-nowrap">${p.status}</span>
                 ${acaoBotao}
             </div>
         </div>
