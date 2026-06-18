@@ -309,7 +309,7 @@ document.getElementById('formEstoque').addEventListener('submit', async function
     }
 });
 
-// Atualizar Status
+// Atualizar Status (Sincronização reativa e atômica)
 async function atualizarStatusAPI(e, id, novoStatus) {
     if (e) {
         e.preventDefault();
@@ -326,16 +326,19 @@ async function atualizarStatusAPI(e, id, novoStatus) {
             body: JSON.stringify({ status: novoStatus })
         });
         if(res.ok) {
+            await carregarEstoque();
             await carregarPedidos();
         } else {
-            alert("Erro ao atualizar status");
+            const dados = await res.json();
+            alert(dados.detail || "Erro ao atualizar status");
         }
     } catch (err) {
         console.error(err);
+        alert("Erro de conexão com o servidor.");
     }
 }
 
-// Alternar Pagamento Clicável
+// Alternar Pagamento Clicável (Sincronização atômica)
 async function alternarPagamentoAPI(e, id, estadoAtual) {
     if (e) {
         e.preventDefault();
@@ -387,7 +390,7 @@ async function excluirUsuarioAPI() {
     }
 }
 
-// Excluir Pedido Completo
+// Excluir Pedido Completo (Sincronização atômica)
 async function excluirPedidoAPI() {
     const idBuscado = document.getElementById('idPedidoStatus').value;
     if (!idBuscado) return alert("Por favor, digite o ID do pedido.");
@@ -408,6 +411,7 @@ async function excluirPedidoAPI() {
 
         toggleModal('modalStatus');
         document.getElementById('formAlterarStatus').reset();
+        await carregarEstoque();
         await carregarPedidos();
         alert(`Pedido #${idBuscado} excluído com sucesso!`);
     } catch (err) {
@@ -415,7 +419,6 @@ async function excluirPedidoAPI() {
     }
 }
 
-// Renderiza em formato de bloco multi-linhas fluido
 // Renderiza em formato de bloco multi-linhas fluido (Ajustado para não truncar no Desktop)
 function renderizarLinhaPedido(p) {
     const idLinha = `pedido-row-${p.id}`;
@@ -425,7 +428,6 @@ function renderizarLinhaPedido(p) {
     if (!linhaElemento) {
         linhaElemento = document.createElement('div');
         linhaElemento.id = idLinha;
-        // Mantém o flex-col para mobile e o grid de 12 colunas para o desktop
         linhaElemento.className = "p-4 flex flex-col gap-2 md:grid md:grid-cols-12 md:items-center hover:bg-gray-50 transition-colors border-b border-gray-100";
     }
 
@@ -449,7 +451,6 @@ function renderizarLinhaPedido(p) {
         acaoBotao = `<button onclick="atualizarStatusAPI(event, ${p.id}, 'entregue')" class="bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 text-xs font-semibold py-1 px-2.5 rounded transition w-full md:w-auto text-center whitespace-nowrap">Entregar</button>`;
     }
 
-    // ARQUITETURA CORRIGIDA: Redistribuição de colunas (md:col-span) para dar mais folga aos botões
     linhaElemento.innerHTML = `
         <div class="col-span-1 flex justify-between items-center md:flex-col md:items-start">
             <span class="text-gray-400 text-xs md:text-sm font-medium">${dataFormatada}</span>
