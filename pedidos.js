@@ -21,7 +21,9 @@ const listaPedidos = document.getElementById('listaPedidos');
 const selectProdutoPedido = document.getElementById('tipoProduto');
 const selectModificarCafe = document.getElementById('selectModificarCafe');
 
-// CORREÇÃO DA INICIALIZAÇÃO: Executa de forma sequencial garantida
+// =========================================================================
+// CORREÇÃO DA INICIALIZAÇÃO: Garante a ordem de carregamento sequencial
+// =========================================================================
 window.addEventListener('DOMContentLoaded', async () => {
     if (nomeUsuario && cargoUsuario) {
         document.getElementById('usuarioLogadoBadge').textContent = `${nomeUsuario.toUpperCase()} (${cargoUsuario.toUpperCase()})`;
@@ -29,15 +31,37 @@ window.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('btnMenuAdmin').classList.remove('hidden');
         }
     }
-    // Força a atualização inicial explícita
+    // Executa a carga inicial automática assim que a página abre
     await atualizarDadosSistema();
 });
 
-// NOVA FUNÇÃO: Centraliza a atualização sob demanda (Usada pelo botão Atualizar)
-async function atualizarDadosSistema() {
-    const carregouEstoque = await carregarEstoque();
-    if (carregouEstoque) {
-        await carregarPedidos();
+// =========================================================================
+// FUNÇÃO GLOBAL DE ATUALIZAÇÃO (Vinculada explicitamente ao escopo window)
+// =========================================================================
+window.atualizarDadosSistema = async function() {
+    // Localiza o botão na tela para dar um feedback visual de carregamento
+    const btn = document.querySelector("button[onclick='atualizarDadosSistema()']");
+    const textoOriginal = btn ? btn.innerHTML : "🔄 Atualizar";
+    
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = "⏳ Sincronizando...";
+    }
+
+    try {
+        // Puxa os dados novos do Supabase através da Vercel
+        const carregouEstoque = await carregarEstoque();
+        if (carregouEstoque) {
+            await carregarPedidos();
+        }
+    } catch (err) {
+        console.error("Erro na sincronização manual:", err);
+    } finally {
+        // Restaura o botão ao estado original
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = textoOriginal;
+        }
     }
 }
 
