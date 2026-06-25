@@ -21,10 +21,22 @@
                 <button onclick="toggleModal('modalEstoque')" class="bg-gray-800 hover:bg-gray-900 text-white font-semibold py-2 px-3 rounded-md transition shadow text-xs sm:text-sm flex-1 sm:flex-none">
                     ⚙️ Estoque/Preços
                 </button>
+            <div class="flex flex-wrap gap-2 justify-center w-full sm:w-auto">
+                <button id="btnMenuAdmin" onclick="toggleModal('modalCadastrarUsuario')" class="hidden bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2 px-3 rounded-md transition shadow text-xs sm:text-sm flex-1 sm:flex-none">
+                    👤 Usuários
+                </button>
+                <button onclick="toggleModal('modalEstoque')" class="bg-gray-800 hover:bg-gray-900 text-white font-semibold py-2 px-3 rounded-md transition shadow text-xs sm:text-sm flex-1 sm:flex-none">
+                    ⚙️ Estoque/Preços
+                </button>
+                
+                <button onclick="atualizarDadosSistema()" class="bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 px-3 rounded-md transition shadow text-xs sm:text-sm flex-1 sm:flex-none">
+                    🔄 Atualizar
+                </button>
+                
                 <button onclick="fazerLogout()" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-semibold py-2 px-3 rounded-md transition text-xs sm:text-sm text-center">
                     Sair
                 </button>
-            </div>
+            </div>  
         </header>
 
         <section id="quadrosEstoque" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 mb-6">

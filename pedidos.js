@@ -21,17 +21,58 @@ const listaPedidos = document.getElementById('listaPedidos');
 const selectProdutoPedido = document.getElementById('tipoProduto');
 const selectModificarCafe = document.getElementById('selectModificarCafe');
 
-// Inicialização Estável
+// CORREÇÃO DA INICIALIZAÇÃO: Executa de forma sequencial garantida
 window.addEventListener('DOMContentLoaded', async () => {
-    document.getElementById('usuarioLogadoBadge').textContent = `${nomeUsuario.toUpperCase()} (${cargoUsuario.toUpperCase()})`;
+    if (nomeUsuario && cargoUsuario) {
+        document.getElementById('usuarioLogadoBadge').textContent = `${nomeUsuario.toUpperCase()} (${cargoUsuario.toUpperCase()})`;
+        if (cargoUsuario === 'admin') {
+            document.getElementById('btnMenuAdmin').classList.remove('hidden');
+        }
+    }
+    // Força a atualização inicial explícita
+    await atualizarDadosSistema();
+});
 
-    if (cargoUsuario === 'admin') {
-        document.getElementById('btnMenuAdmin').classList.remove('hidden');
+// NOVA FUNÇÃO: Centraliza a atualização sob demanda (Usada pelo botão Atualizar)
+async function atualizarDadosSistema() {
+    const carregouEstoque = await carregarEstoque();
+    if (carregouEstoque) {
+        await carregarPedidos();
+    }
+}
+
+// FUNÇÃO AUXILIAR: Cria e exibe o popup (Toast Notification) na tela de forma dinâmica
+function exibirPopupSucesso(mensagem) {
+    // Cria o elemento de container se não existir
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = "fixed bottom-6 left-6 z-50 flex flex-col gap-2 pointer-events-none";
+        document.body.appendChild(container);
     }
 
-    await carregarEstoque();
-    carregarPedidos();
-});
+    // Cria o card do popup estilizado com Tailwind
+    const toast = document.createElement('div');
+    toast.className = "bg-emerald-600 text-white font-semibold text-sm px-5 py-3.5 rounded-lg shadow-2xl flex items-center gap-3 transition-all duration-300 transform translate-y-4 opacity-0 pointer-events-auto border border-emerald-500";
+    toast.innerHTML = `
+        <span>🎉</span>
+        <div>${mensagem}</div>
+    `;
+
+    container.appendChild(toast);
+
+    // Efeito de entrada (Fade-in + Slide-up)
+    setTimeout(() => {
+        toast.classList.remove('translate-y-4', 'opacity-0');
+    }, 10);
+
+    // Efeito de saída (Fade-out) após 4 segundos
+    setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
+}
 
 function fazerLogout() {
     localStorage.clear();
@@ -44,6 +85,8 @@ async function carregarEstoque() {
         const res = await fetch(`${API_URL}/estoque`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
+        
+        if (!res.ok) return false;
         const estoque = await res.json();
         
         cafesCache = {};
@@ -78,6 +121,7 @@ async function carregarEstoque() {
         return true;
     } catch (err) {
         console.error("Erro ao carregar estoque:", err);
+        return false;
     }
 }
 
@@ -211,7 +255,7 @@ tipoEnvio.addEventListener('change', function() {
         labelEndereco.textContent = "Endereço de Entrega";
         inputEndereco.placeholder = "Rua, Número, Bairro";
     } else {
-        labelEndereco.textContent = "Local de Retirada / Observação";
+        labelEndereco.textContent = "Local de Retirada / Observation";
         inputEndereco.placeholder = "Ex: Loja Central, Balcão 2, etc. (Opcional)";
     }
 });
@@ -220,8 +264,10 @@ tipoEnvio.addEventListener('change', function() {
 formPedido.addEventListener('submit', async function(e) {
     e.preventDefault();
 
+    const nomeClienteInput = document.getElementById('cliente').value;
+
     const corpoPedido = {
-        cliente: document.getElementById('cliente').value,
+        cliente: nomeClienteInput,
         cafe_id: parseInt(selectProdutoPedido.value),
         tamanho_pacote: document.getElementById('tamanhoPacote').value,
         quantidade: parseInt(document.getElementById('quantidade').value),
@@ -247,8 +293,11 @@ formPedido.addEventListener('submit', async function(e) {
 
         formPedido.reset();
         campoMoagem.classList.add('hidden');
-        await carregarEstoque(); 
         
+        // MODIFICADO: Dispara o popup customizado na tela em vez de usar alert travando o script
+        exibirPopupSucesso(`Pedido de <b>${nomeClienteInput}</b> adicionado com sucesso!`);
+
+        await carregarEstoque(); 
         skipAtual = 0; 
         await carregarPedidos();
     } catch (err) {
@@ -309,7 +358,7 @@ document.getElementById('formEstoque').addEventListener('submit', async function
     }
 });
 
-// Atualizar Status (Sincronização reativa e atômica)
+// Atualizar Status
 async function atualizarStatusAPI(e, id, novoStatus) {
     if (e) {
         e.preventDefault();
@@ -338,7 +387,7 @@ async function atualizarStatusAPI(e, id, novoStatus) {
     }
 }
 
-// Alternar Pagamento Clicável (Sincronização atômica)
+// Alternar Pagamento Clicável
 async function alternarPagamentoAPI(e, id, estadoAtual) {
     if (e) {
         e.preventDefault();
@@ -390,7 +439,7 @@ async function excluirUsuarioAPI() {
     }
 }
 
-// Excluir Pedido Completo (Sincronização atômica)
+// Excluir Pedido Completo
 async function excluirPedidoAPI() {
     const idBuscado = document.getElementById('idPedidoStatus').value;
     if (!idBuscado) return alert("Por favor, digite o ID do pedido.");
@@ -419,7 +468,6 @@ async function excluirPedidoAPI() {
     }
 }
 
-// Renderiza em formato de bloco multi-linhas fluido (Ajustado para não truncar no Desktop)
 function renderizarLinhaPedido(p) {
     const idLinha = `pedido-row-${p.id}`;
     let linhaElemento = document.getElementById(idLinha);
@@ -503,7 +551,6 @@ function renderizarLinhaPedido(p) {
     }
 }
 
-// Form Status por ID
 document.getElementById('formAlterarStatus').addEventListener('submit', function(e) {
     e.preventDefault();
     const id = document.getElementById('idPedidoStatus').value;
